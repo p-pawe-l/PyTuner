@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytuner"
+version = "0.1.0"
+description = "Hyperparameter tuning framework for reinforcement learning models"
+requires-python = ">=3.10"
+dependencies = [
+    "gymnasium",
+    "stable-baselines3",
+    "optuna",
+    "numpy",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.setuptools.packages.find]
+include = ["base*", "gymnasium_tools*", "optuna_tools*", "stable_baselines3_tools*"]
