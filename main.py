@@ -21,7 +21,7 @@ def prepare_context() -> OptunaTunerContext:
     return OptunaTunerContext(train_timesteps=1000, 
                               creation_context=creation_context, 
                               tuning_context=tuning_context)
-    
+
 def main() -> None:
     context: OptunaTunerContext = prepare_context() 
     model: TrainableModel = PPO_Model()

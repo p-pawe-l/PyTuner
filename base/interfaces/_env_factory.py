@@ -16,13 +16,4 @@ class EnvFactory(typing.Protocol):
         :param task: The task to create the environment for.
         :return: The environment.
         """
-        raise NotImplementedError("EnvFactory.create_env must be supported by the subclass")
-    
-    def create_vec_env(self) -> typing.Any:
-        """
-        Creating the vectorized environment.
-        
-        :param task: The task to create the vectorized environment for.
-        :return: The vectorized environment.
-        """
-        raise NotImplementedError("EnvFactory.create_vec_env must be supported by the subclass")
+        raise NotImplementedError("EnvFactory.create_env must be supported by the subclass") 

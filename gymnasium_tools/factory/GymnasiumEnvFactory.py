@@ -24,12 +24,3 @@ class GymnasiumEnvFactory(EnvFactory):
         """
         created_env: gymnasium.Env = gymnasium.make(self._task, *self._args, **self._kwargs)
         return created_env
-
-    def create_vec_env(self) -> gymnasium.Env:
-        """
-        Creating a vectorized Gymnasium environment.
-        
-        :return: The created vectorized environment.
-        """
-        created_vec_env: gymnasium.Env = gymnasium.vector.make(self._task, *self._args, **self._kwargs)
-        return created_vec_env

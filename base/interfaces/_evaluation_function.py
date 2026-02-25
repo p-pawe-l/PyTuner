@@ -3,8 +3,8 @@ import typing
 
 import gymnasium 
 
-from base.interfaces._trainable_model import TrainableModel
-from base.interfaces._env_factory import EnvFactory
+if typing.TYPE_CHECKING:
+    from base.interfaces._trainable_model import TrainableModel
 
 EvaluationResult = float | tuple[float, ...]
 

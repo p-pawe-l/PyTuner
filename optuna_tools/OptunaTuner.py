@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import typing
 import optuna
-from sympy.polys import resultant
+
+from stable_baselines3.common.callbacks import BaseCallback
 
 from base.interfaces._tuner import Tuner
 from base.interfaces._trainable_model import TrainableModel
@@ -28,19 +29,26 @@ class OptunaTuner(Tuner):
         self._tuning_context: OptunaTuningContext = context.tuning_context
         
         self._train_timesteps: int = context.train_timesteps
+        self._callbacks: list[BaseCallback] = []
+        
+    def add_callback(self, callback: typing.Optional[BaseCallback] = None) -> None:
+        if callback is None: return
+        self._callbacks.append(callback)
+        
+    def reset_callbacks(self) -> None:
+        self._callbacks = []
 
-    # Special method for optuna to optimize during study 
+    # Special method for optuna to optimize during study
     def _objective(self, trail: optuna.Trial) -> float:
         # Getting sample of hyperparams from configured ranges of hyperparams
         sample_hyperparams: dict[str, typing.Any] = self._config.get_sample(trail)
-        
+
         # Building -> Training -> Evaluating Model
-        # Some kind of builder pattern 
         result: EvaluationResult = self._model \
-            .build(sample_hyperparams, self._envFactory) \
-            .train(timesteps=self._train_timesteps) \
-            .evaluate(self._eval_func)
-        
+                                   .build(sample_hyperparams, self._envFactory) \
+                                   .train(timesteps=self._train_timesteps, callback=self._callbacks) \
+                                   .evaluate(eval_func=self._eval_func)
+
         return result
     
     def tune(self) -> TuningResult:

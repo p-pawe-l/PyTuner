@@ -31,6 +31,12 @@ class GeneralInterfaceModel(TrainableModel, typing.Generic[StableBaselines3Model
     """
     _algo_class: type[StableBaselines3Model]
     
+    def __init__(self, policy: str = "MlpPolicy") -> None:
+        # Unitialized model, will be set when building the model with self.build() method
+        self._model: typing.Optional[StableBaselines3Model] = None
+        self._env: typing.Optional[gymnasium.Env] = None
+        self._policy: str = policy
+    
     # Adding this functions enables easier testing
     def _validate_model(self) -> None:
         if self._model is None: raise MissingModelError("Build model before training or evaluating")
@@ -52,18 +58,19 @@ class GeneralInterfaceModel(TrainableModel, typing.Generic[StableBaselines3Model
             
     """-----------------------------API INTERFACE METHODS TO USE FOR BUILDING, TRAINING AND EVALUATING THE MODEL-----------------------------"""
 
-    def build(self, hyperparams: dict[str, typing.Any], envFactory: EnvFactory, policy: str = "MlpPolicy") -> typing.Self:
+    def build(self, hyperparams: dict[str, typing.Any], envFactory: EnvFactory) -> typing.Self:
         """
         Building the model from provided hyperparameters and environment factory.
         
         :param hyperparams: Hyperparameters for the model.
         :param envFactory: Environment factory to create the environment.
         :param policy: Policy to use for the model.
+        :return: Self, for method chaining.
         """
         self._validate_hyperparams(hyperparams)
         
-        env: gymnasium.Env = envFactory.create_env()
-        self._model = self._algo_class(policy=policy, env=env, **hyperparams)
+        self._env: gymnasium.Env = envFactory.create_env()
+        self._model: StableBaselines3Model = self._algo_class(policy=self._policy, env=self._env, **hyperparams)
         return self
 
     def train(self, timesteps: int, *args: typing.Any, **kwargs: typing.Any) -> typing.Self:
@@ -93,5 +100,5 @@ class GeneralInterfaceModel(TrainableModel, typing.Generic[StableBaselines3Model
         self._validate_model()
         self._validate_eval_func(eval_func)
 
-        result: EvaluationResult = eval_func(self._model, self._model.get_env(), *args, **kwargs)
+        result: EvaluationResult = eval_func(self._model, self._env, *args, **kwargs)
         return result
