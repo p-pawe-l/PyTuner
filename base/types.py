@@ -10,6 +10,10 @@ from base.base_env_factory import BaseEnvFactory
 
 SamplerType = typing.TypeVar("SamplerType")
 
+NumericType = typing.TypeVar("NumericType", bound=int | float)
+CategoricalType = typing.TypeVar("CategoricalType", bound=list[typing.Any] | tuple[typing.Any, ...])
+RangeType = typing.TypeVar("RangeType", bound=typing.Union[NumericType, CategoricalType])
+
 ModelType = typing.TypeVar("ModelType")
 EnvType = typing.TypeVar("EnvType", bound=gymnasium.Env | BaseEnvFactory)
 
