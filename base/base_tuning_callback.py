@@ -1,3 +1,5 @@
+import abc
+
 from stable_baselines3.common.callbacks import BaseCallback
 
 
@@ -11,7 +13,12 @@ class BaseTuningCallback(BaseCallback):
     def __init__(self, verbose: int = 0) -> None:
         super().__init__(verbose)
 
-    def _on_step(self) -> bool:
-        # This method is called at every step of the training process.
-        # You can add your logging logic here.
-        return True
+    @abc.abstractmethod
+    def on_tuning_start(self) -> bool:
+        """Called at the beginning of the tuning process."""
+        pass
+
+    @abc.abstractmethod
+    def on_tuning_end(self) -> bool:
+        """Called at the end of the tuning process."""
+        pass

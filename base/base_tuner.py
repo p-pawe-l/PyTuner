@@ -68,7 +68,9 @@ class BaseTuner(abc.ABC):
             self._callbacks = [callbacks]
 
     @abc.abstractmethod
-    def __custom_tuning_method(self) -> BaseTuningResults:
+    def __custom_tuning_method(
+        self, runs: int, *args: tuple, **kwargs: dict[str, typing.Any]
+    ) -> BaseTuningResults:
         """
         Custom tuning method to be implemented by the subclass.
         This method should contain the actual tuning logic.
@@ -77,7 +79,6 @@ class BaseTuner(abc.ABC):
         """
         pass
 
-    @abc.abstractmethod
     def tune(
         self, runs: int = 20, *args: tuple, **kwargs: dict[str, typing.Any]
     ) -> BaseTuningResults:
@@ -94,7 +95,7 @@ class BaseTuner(abc.ABC):
             if not callback.on_tuning_start():
                 break
 
-        results: BaseTuningResults = self.__custom_tuning_method()
+        results: BaseTuningResults = self.__custom_tuning_method(runs, *args, **kwargs)
 
         for callback in self._callbacks or []:
             if not callback.on_tuning_end():
