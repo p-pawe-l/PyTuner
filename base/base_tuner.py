@@ -3,7 +3,8 @@ from __future__ import annotations
 import abc
 import typing
 
-from types import ModelType, EnvType, EvalFuncType
+from base.base_tuning_callback import BaseTuningCallback
+from base.types import ModelType, EnvType, EvalFuncType
 from base_config import BaseConfig
 
 
@@ -35,6 +36,8 @@ class BaseTuner(abc.ABC):
         self._args: typing.Optional[tuple] = None
         self._kwargs: typing.Optional[dict[str, typing.Any]] = None
 
+        self._callbacks: typing.Optional[list[BaseTuningCallback]] = None
+
     def pre_configure(
         self,
         eval_func: EvalFuncType,
@@ -56,8 +59,45 @@ class BaseTuner(abc.ABC):
 
         self._is_preconfigured = True
 
+    def set_callbacks(
+        self, callbacks: list[BaseTuningCallback] | BaseTuningCallback
+    ) -> None:
+        if isinstance(callbacks, list):
+            self._callbacks = callbacks
+        else:
+            self._callbacks = [callbacks]
+
+    @abc.abstractmethod
+    def __custom_tuning_method(self) -> BaseTuningResults:
+        """
+        Custom tuning method to be implemented by the subclass.
+        This method should contain the actual tuning logic.
+
+        :return: The tuning results.
+        """
+        pass
+
     @abc.abstractmethod
     def tune(
         self, runs: int = 20, *args: tuple, **kwargs: dict[str, typing.Any]
-    ) -> None:
-        pass
+    ) -> BaseTuningResults:
+        """
+        Tuning the model.
+
+        :param runs: Number of tuning runs to perform.
+        :param args: Additional positional arguments for the tuning method.
+        :param kwargs: Additional keyword arguments for the tuning method.
+        :return: The tuning results.
+        """
+
+        for callback in self._callbacks or []:
+            if not callback.on_tuning_start():
+                break
+
+        results: BaseTuningResults = self.__custom_tuning_method()
+
+        for callback in self._callbacks or []:
+            if not callback.on_tuning_end():
+                break
+
+        return results
