@@ -14,6 +14,11 @@ class BaseTuningCallback(BaseCallback):
         super().__init__(verbose)
 
     @abc.abstractmethod
+    def _on_tuning_single_run(self) -> bool:
+        """Called at the end of each tuning run."""
+        pass
+
+    @abc.abstractmethod
     def on_tuning_start(self) -> bool:
         """Called at the beginning of the tuning process."""
         pass
