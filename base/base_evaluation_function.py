@@ -31,6 +31,4 @@ class BaseEvaluationFunction(typing.Protocol):
         :param kwargs: Additional keyword arguments to the evaluation function.
         :return: The evaluation score.
         """
-        raise NotImplementedError(
-            "EvaluationFunction.__call__ must be supported by the subclass"
-        )
+        raise NotImplementedError("EvaluationFunction.__call__ must be supported by the subclass")

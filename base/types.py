@@ -20,5 +20,6 @@ EvalFuncType = typing.TypeVar(
         [sb3_base_class.BaseAlgorithm, gymnasium.Env, tuple, dict[str, typing.Any]],
         EvalResultType,
     ]
+    | typing.Callable[[sb3_base_class.BaseAlgorithm, gymnasium.Env], EvalResultType]
     | BaseEvaluationFunction,
 )

@@ -18,8 +18,7 @@ class BaseConfig(typing.Protocol):
         """
 
         samples: dict[str, typing.Any] = {
-            field.name: getattr(self, field.name)(sampler, field.name)
-            for field in dataclasses.fields(self)
+            field.name: getattr(self, field.name)(sampler, field.name) for field in dataclasses.fields(self)
         }
 
         return samples

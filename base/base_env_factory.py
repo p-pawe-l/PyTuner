@@ -14,9 +14,7 @@ class BaseEnvFactory(abc.ABC):
         self._task: str = task
 
     @abc.abstractmethod
-    def create_env(
-        self, *args: tuple, **kwargs: dict[str, typing.Any]
-    ) -> gymnasium.Env:
+    def create_env(self, *args: tuple, **kwargs: dict[str, typing.Any]) -> gymnasium.Env:
         """
         Creating the environment.
 

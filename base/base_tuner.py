@@ -2,10 +2,16 @@ from __future__ import annotations
 
 import abc
 import typing
+import gymnasium
+
+import enum
 
 from base.base_tuning_callback import BaseTuningCallback
-from base.types import ModelType, EnvType, EvalFuncType
-from base_config import BaseConfig
+from base.types import EvalFuncType
+from base.base_model import BaseModel
+from base.base_config import BaseConfig
+
+from errors.tuner_errros import NotPreConfiguredTunerError
 
 
 class BaseTuningResults(abc.ABC):
@@ -25,9 +31,13 @@ class BaseTuningResults(abc.ABC):
 
 class BaseTuner(abc.ABC):
 
-    def __init__(self, model: ModelType, env: EnvType) -> None:
-        self._model: ModelType = model
-        self._env: EnvType = env
+    class CallbackOption(enum.Enum):
+        TUNE_START = "tune_start"
+        TUNE_END = "tune_end"
+
+    def __init__(self, model: BaseModel, env: gymnasium.Env) -> None:
+        self._model: BaseModel = model
+        self._env: gymnasium.Env = env
 
         self._is_preconfigured: bool = False
 
@@ -36,7 +46,7 @@ class BaseTuner(abc.ABC):
         self._args: typing.Optional[tuple] = None
         self._kwargs: typing.Optional[dict[str, typing.Any]] = None
 
-        self._callbacks: typing.Optional[list[BaseTuningCallback]] = None
+        self._callbacks: typing.Optional[list[BaseTuningCallback]] = []
 
     def pre_configure(
         self,
@@ -59,46 +69,41 @@ class BaseTuner(abc.ABC):
 
         self._is_preconfigured = True
 
-    def set_callbacks(
-        self, callbacks: list[BaseTuningCallback] | BaseTuningCallback
-    ) -> None:
+    def set_callbacks(self, callbacks: list[BaseTuningCallback] | BaseTuningCallback) -> None:
         if isinstance(callbacks, list):
             self._callbacks = callbacks
         else:
             self._callbacks = [callbacks]
 
     @abc.abstractmethod
-    def __custom_tuning_method(
-        self, runs: int, *args: tuple, **kwargs: dict[str, typing.Any]
-    ) -> BaseTuningResults:
+    def _custom_tune_method(self, runs: int = 20, *args: tuple, **kwargs: dict[str, typing.Any]) -> BaseTuningResults:
         """
         Custom tuning method to be implemented by the subclass.
-        This method should contain the actual tuning logic.
-
-        :return: The tuning results.
-        """
-        pass
-
-    def tune(
-        self, runs: int = 20, *args: tuple, **kwargs: dict[str, typing.Any]
-    ) -> BaseTuningResults:
-        """
-        Tuning the model.
 
         :param runs: Number of tuning runs to perform.
         :param args: Additional positional arguments for the tuning method.
         :param kwargs: Additional keyword arguments for the tuning method.
         :return: The tuning results.
         """
+        pass
 
-        for callback in self._callbacks or []:
-            if not callback.on_tuning_start():
-                break
+    def __run_callbacks(self, option: CallbackOption) -> None:
+        if self._callbacks is not None:
+            for callback in self._callbacks:
+                match option:
+                    case self.CallbackOption.TUNE_START:
+                        callback.on_tuning_start(self)
+                    case self.CallbackOption.TUNE_END:
+                        callback.on_tuning_end(self)
 
-        results: BaseTuningResults = self.__custom_tuning_method(runs, *args, **kwargs)
+    def tune(self, runs: int = 20, *args: tuple, **kwargs: dict[str, typing.Any]) -> BaseTuningResults:
+        if not self._is_preconfigured:
+            raise NotPreConfiguredTunerError("Tuner must be pre-configured before tuning")
 
-        for callback in self._callbacks or []:
-            if not callback.on_tuning_end():
-                break
+        self.__run_callbacks(self.CallbackOption.TUNE_START)
+
+        results = self._custom_tune_method(runs, *args, **kwargs)
+
+        self.__run_callbacks(self.CallbackOption.TUNE_END)
 
         return results
